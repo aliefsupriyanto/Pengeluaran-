@@ -349,12 +349,10 @@
             .legend-bar-fill { filter: none !important; height: 100% !important; }
 
             .history-section { background: transparent !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
-            .history-header h4 { color: #0f172a !important; font-size: 15px !important; font-weight: 800 !important; margin-bottom: 12px !important; border-bottom: 2px solid #0f172a !important; padding-bottom: 4px !important; display: inline-block !important; display: none !important; } /* Sembunyikan h4 bawaan saat print */
+            .history-header h4 { display: none !important; }
             
-            /* Mengatur kontainer tabel agar pindah ke halaman baru */
             #history-container { page-break-before: always !important; break-before: page !important; padding-top: 10px !important; }
             
-            /* CSS UNTUK TABEL COMPACT SAAT DI-PRINT */
             .print-history-table {
                 width: 100% !important;
                 border-collapse: collapse !important;
@@ -454,14 +452,8 @@
 
             <div class="form-group full-width" id="group-category">
                 <label class="form-label">Kategori</label>
-                <select class="form-control" id="input-category" onchange="checkCustomOption(this)">
-                    <option value="Makan & Minum">🍔 Makan & Minum</option>
-                    <option value="Belanja">🛍️ Belanja</option>
-                    <option value="Kebutuhan Rumah">🏠 Kebutuhan Rumah</option>
-                    <option value="Transportasi">🛵 Transportasi</option>
-                    <option value="Lainnya">📦 Lainnya</option>
-                    <option value="add_new" style="font-weight:bold; color:var(--gold-primary);">+ Tambah Baru...</option>
-                </select>
+                <!-- PENAMBAHAN ID AGAR BISA DIDETEKSI TIPE TRANSAKSINYA -->
+                <select class="form-control" id="input-category" onchange="checkCustomOption(this, 'input-type')"></select>
             </div>
             
             <div class="form-group full-width">
@@ -593,7 +585,8 @@
             </div>
             <div class="form-group full-width">
                 <label class="form-label">Kategori</label>
-                <select class="form-control" id="edit-trx-category" onchange="checkCustomOption(this)"></select>
+                <!-- PENAMBAHAN ID AGAR BISA DIDETEKSI TIPE TRANSAKSINYA -->
+                <select class="form-control" id="edit-trx-category" onchange="checkCustomOption(this, 'edit-trx-type')"></select>
             </div>
             <div class="form-group full-width">
                 <label class="form-label">Keterangan</label>
@@ -666,6 +659,9 @@
                     accounts = res.data;
                     renderSelector();
                     renderApp();
+                    
+                    // Refresh pilihan kategori master agar kategori dari server (histori) langsung dimuat
+                    toggleFormFields('input-type', 'input-category');
                 }
                 document.getElementById('loading-overlay').style.display = 'none';
             })
@@ -756,28 +752,84 @@
         }, 300);
     }
 
-    function checkCustomOption(selectElement) {
+    // ==========================================
+    // LOGIKA PENYIMPANAN KATEGORI MASTER OTOMATIS
+    // ==========================================
+
+    // Mengambil semua kategori (Default + LocalStorage + Histori Transaksi)
+    function getCategories(type) {
+        // 1. Kategori Default Bawaan
+        let defaults = type === 'in'
+            ? ["💰 Gaji / Upah", "🏪 Hasil Usaha", "🎁 Bonus / Lainnya"]
+            : ["🍔 Makan & Minum", "🛍️ Belanja", "🏠 Kebutuhan Rumah", "🛵 Transportasi", "📦 Lainnya"];
+
+        let masterSet = new Set(defaults);
+
+        // 2. Ambil dari penyimpanan perangkat (Bila pernah buat manual)
+        try {
+            let localCats = JSON.parse(localStorage.getItem('customCats_' + type)) || [];
+            localCats.forEach(cat => masterSet.add(cat));
+        } catch(e) {}
+
+        // 3. Ambil dari Histori Transaksi (Otomatis dari Server)
+        if (accounts && accounts.length > 0) {
+            accounts.forEach(acc => {
+                if(acc.history) {
+                    acc.history.forEach(trx => {
+                        // Memastikan Tipe sama, tidak kosong, dan bukan Transfer Internal
+                        if (trx.type === type && trx.category && trx.category !== 'Transfer Keluar' && trx.category !== 'Transfer Masuk') {
+                            masterSet.add(trx.category);
+                        }
+                    });
+                }
+            });
+        }
+
+        return Array.from(masterSet);
+    }
+
+    function checkCustomOption(selectElement, typeId) {
         if (selectElement.value === 'add_new') {
-            const newValue = prompt("Ketik pilihan baru yang ingin ditambahkan:");
+            const newValue = prompt("Ketik kategori baru yang ingin ditambahkan (otomatis tersimpan sebagai master):");
             if (newValue && newValue.trim() !== '') {
                 const cleanValue = escapeHTML(newValue.trim());
-                const newOpt = document.createElement('option');
-                newOpt.value = cleanValue; newOpt.text = cleanValue;
-                selectElement.insertBefore(newOpt, selectElement.lastElementChild);
+                const type = document.getElementById(typeId).value;
+
+                // 1. Simpan kategori baru ini ke dalam memori perangkat agar abadi
+                let localCats = [];
+                try { localCats = JSON.parse(localStorage.getItem('customCats_' + type)) || []; } catch(e){}
+                
+                if(!localCats.includes(cleanValue)) {
+                    localCats.push(cleanValue);
+                    localStorage.setItem('customCats_' + type, JSON.stringify(localCats));
+                }
+
+                // 2. Refresh dropdown agar langsung muncul dan siap digunakan
+                populateSelectOptions(selectElement.id, type);
+                
+                // 3. Set pilihan ke kategori yang baru saja dibuat
                 selectElement.value = cleanValue;
-            } else { selectElement.selectedIndex = 0; }
+            } else {
+                selectElement.selectedIndex = 0;
+            }
         }
     }
 
     const populateSelectOptions = (elId, type, includeAddNew = true) => {
         const el = document.getElementById(elId);
         if(!el) return;
+        
+        let categories = getCategories(type);
         let opts = "";
         
-        if (type === 'in') opts = `<option value="Gaji">💰 Gaji / Upah</option><option value="Hasil Usaha">🏪 Hasil Usaha</option><option value="Bonus">🎁 Bonus / Lainnya</option>`;
-        else opts = `<option value="Makan & Minum">🍔 Makan & Minum</option><option value="Belanja">🛍️ Belanja</option><option value="Kebutuhan Rumah">🏠 Kebutuhan Rumah</option><option value="Transportasi">🛵 Transportasi</option><option value="Lainnya">📦 Lainnya</option>`;
+        categories.forEach(cat => {
+            opts += `<option value="${cat}">${cat}</option>`;
+        });
         
-        if(includeAddNew) opts += `<option value="add_new" style="font-weight:bold; color:var(--gold-primary);">+ Tambah Baru...</option>`;
+        if(includeAddNew) {
+            opts += `<option value="add_new" style="font-weight:bold; color:var(--gold-primary);">+ Tambah Baru...</option>`;
+        }
+        
         el.innerHTML = opts;
     }
 
@@ -891,7 +943,6 @@
             }
         }
 
-        // Jika dalam mode PDF (Print), jadikan kronologis (tanggal awal ke akhir)
         if (isPrintMode) { dateKeysToRender.reverse(); }
 
         if(dateKeysToRender.length === 0) {
@@ -899,11 +950,7 @@
             return;
         }
 
-        // ==========================================
-        // TABEL PDF KHUSUS PRINT
-        // ==========================================
         if (isPrintMode) {
-            // MEMBUAT KOP LAPORAN
             let kopHTML = `
             <div style="text-align: center; margin-bottom: 20px;">
                 <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 1px;">Laporan Rincian Transaksi</h3>
@@ -931,7 +978,6 @@
                 let dayTrxList = trxByDateMap[dateKey] || [];
                 if (dayTrxList.length === 0) return;
                 
-                // Urutkan berdasarkan waktu di hari yang sama
                 dayTrxList.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
                 
                 let [y, m, d] = dateKey.split('-');
@@ -945,13 +991,10 @@
                     let amtPrefix = h.type === 'in' ? '+' : '-';
                     
                     tableHTML += `<tr>`;
-                    
-                    // Kolom tanggal hanya dirender di baris pertama untuk setiap hari
                     if (index === 0) {
                         tableHTML += `<td rowspan="${rowSpan}" style="vertical-align: top; background-color: #f8fafc;"><strong>${dateStr}</strong></td>`;
                     }
                     
-                    // POSISI KATEGORI & KETERANGAN SUDAH DITUKAR
                     tableHTML += `
                         <td>${timeStr}</td>
                         <td><strong>${escapeHTML(h.category)}</strong></td>
@@ -965,7 +1008,6 @@
             historyContainer.innerHTML = tableHTML;
             
         } else {
-            // Tampilan layar normal (Bukan PDF) tetap seperti awal
             let htmlGroups = '';
             dateKeysToRender.forEach(dateKey => {
                 let dayTrxList = trxByDateMap[dateKey] || [];
@@ -1277,11 +1319,6 @@
         
         const editCatEl = document.getElementById('edit-trx-category');
         if (trx.category) {
-            if (!Array.from(editCatEl.options).find(o => o.value === trx.category)) {
-                const newOpt = document.createElement('option');
-                newOpt.value = trx.category; newOpt.text = trx.category;
-                editCatEl.insertBefore(newOpt, editCatEl.lastElementChild);
-            }
             editCatEl.value = trx.category;
         }
         
@@ -1401,7 +1438,14 @@
         .catch(err => { showToast('Gagal hapus akun!', true); document.getElementById('loading-overlay').style.display = 'none'; });
     }
 
-    window.onload = () => { setDefaultDateTime(); loadData(); };
+    window.onload = () => { 
+        setDefaultDateTime(); 
+        
+        // Memuat master kategori secara default sebelum data server berhasil ditangkap
+        toggleFormFields('input-type', 'input-category');
+        
+        loadData(); 
+    };
 </script>
 
 </body>

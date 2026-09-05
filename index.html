@@ -758,10 +758,10 @@
 
     // Mengambil semua kategori (Default + LocalStorage + Histori Transaksi)
     function getCategories(type) {
-        // 1. Kategori Default Bawaan
+        // 1. Kategori Default Bawaan (Icon emoji dihapus agar tidak dobel dengan data yang diketik manual)
         let defaults = type === 'in'
-            ? ["💰 Gaji / Upah", "🏪 Hasil Usaha", "🎁 Bonus / Lainnya"]
-            : ["🍔 Makan & Minum", "🛍️ Belanja", "🏠 Kebutuhan Rumah", "🛵 Transportasi", "📦 Lainnya"];
+            ? ["Gaji / Upah", "Hasil Usaha", "Bonus / Lainnya"]
+            : ["Makan & Minum", "Belanja", "Kebutuhan Rumah", "Transportasi", "Lainnya"];
 
         let masterSet = new Set(defaults);
 

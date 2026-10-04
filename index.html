@@ -121,7 +121,7 @@
 
         .balance-label { font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0; display: block; }
         
-        /* --- TAMBAHAN CSS UNTUK 3 KARTU / SLOT SALDO --- */
+        /* 3 KARTU / SLOT SALDO */
         .period-select {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid var(--border-glass);
@@ -172,7 +172,6 @@
         .balance-val.positive { color: var(--success); }
         .balance-val.negative { color: var(--danger); }
         .balance-val.neutral { color: white; }
-        /* ----------------------------------------------- */
 
         .month-comparison-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
@@ -258,11 +257,9 @@
         .date-filter-row label { font-size: 11px; color: var(--text-muted); font-weight: 700; width: 30px; text-transform: uppercase; }
         .date-filter-row input { flex: 1; padding: 10px 12px; font-size: 12px; }
         
-        .date-preset-buttons { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
-        .date-preset-buttons::-webkit-scrollbar { height: 0px; }
         .btn-preset { background: rgba(255,255,255,0.05); border: 1px solid transparent; color: var(--text-main); font-size: 11px; font-weight: 600; padding: 8px 14px; border-radius: 20px; cursor: pointer; white-space: nowrap; transition: var(--transition); }
         .btn-preset.active { background: var(--gold-glow); color: var(--gold-light); border-color: var(--border-highlight); font-weight: 700;}
-        .btn-print { background: var(--info-bg) !important; border: 1px solid rgba(59, 130, 246, 0.3) !important; color: #60a5fa !important; margin-left: auto; }
+        .btn-print { background: var(--info-bg) !important; border: 1px solid rgba(59, 130, 246, 0.3) !important; color: #60a5fa !important; }
 
         /* CHART & LEGEND */
         .chart-wrapper { display: flex; flex-direction: column; gap: 28px; margin-bottom: 30px; display: none; }
@@ -439,6 +436,7 @@
         <h2>👑 Keuangan Juragan</h2>
     </div>
 
+    <!-- PANEL SALDO UTAMA -->
     <div class="total-card">
         <div class="active-account-info">
             <div class="acc-badge">
@@ -447,25 +445,20 @@
             </div>
         </div>
         
-        <!-- ============================================== -->
-        <!-- 3 SLOT SALDO SESUAI PERMINTAAN                 -->
-        <!-- ============================================== -->
         <div class="balance-stack">
-            <!-- SLOT 1: Keseluruhan Pertahun (Pilihan Tahun) -->
+            <!-- SLOT 1: Keseluruhan Pertahun -->
             <div class="balance-slot">
                 <strong id="year-balance-val" class="balance-val neutral">Rp 0</strong>
                 <div class="balance-slot-right">
-                    <select id="year-filter" class="period-select" onchange="updateBalanceCard()">
-                        <!-- Opsi tahun akan di-generate otomatis via JavaScript -->
-                    </select>
+                    <select id="year-filter" class="period-select" onchange="updateBalanceCard()"></select>
                 </div>
             </div>
 
-            <!-- SLOT 2: Data Perbulan (Pilihan Bulan) -->
+            <!-- SLOT 2: Bulan Sebelumnya -->
             <div class="balance-slot">
-                <strong id="month-balance-val" class="balance-val neutral">Rp 0</strong>
+                <strong id="prev-month-balance-val" class="balance-val neutral">Rp 0</strong>
                 <div class="balance-slot-right">
-                    <select id="month-filter" class="period-select" onchange="updateBalanceCard()">
+                    <select id="prev-month-filter" class="period-select" onchange="updateBalanceCard()">
                         <option value="0">JANUARI</option>
                         <option value="1">FEBRUARI</option>
                         <option value="2">MARET</option>
@@ -482,29 +475,31 @@
                 </div>
             </div>
 
-            <!-- SLOT 3: Saldo Bulan Sekarang (Otomatis) -->
-            <div class="balance-slot">
-                <strong id="current-month-balance-val" class="balance-val neutral">Rp 0</strong>
+            <!-- SLOT 3 (Dulu Merah): Mengikuti Filter Riwayat di Bawah -->
+            <div class="balance-slot" style="border-color: var(--gold-primary); background: rgba(234, 179, 8, 0.05);">
+                <strong id="primary-month-balance-val" class="balance-val neutral">Rp 0</strong>
                 <div class="balance-slot-right">
-                    <span class="balance-label" style="color:var(--gold-light);">SALDO BULAN INI</span>
+                    <!-- Label ini akan otomatis berubah teksnya sesuai filter riwayat -->
+                    <span id="dynamic-period-label" class="period-select" style="border: 1px solid var(--gold-primary); cursor: default; background: rgba(0,0,0,0.3);">PERIODE</span>
                 </div>
             </div>
         </div>
-        <!-- ============================================== -->
 
+        <!-- RINGKASAN MASUK & KELUAR -->
         <div class="month-comparison-grid">
             <div class="mc-item">
-                <span class="mc-label">Masuk (In)</span>
+                <span class="mc-label" id="lbl-income">Masuk</span>
                 <strong class="mc-value income" id="val-income-month">Rp 0</strong>
             </div>
             <div class="mc-item" style="text-align: right; align-items: flex-end;">
-                <span class="mc-label">Keluar (Out)</span>
+                <span class="mc-label" id="lbl-expense">Keluar</span>
                 <strong class="mc-value expense" id="val-expense-month">Rp 0</strong>
             </div>
         </div>
         <div class="trend-wrapper" id="trend-display"></div>
     </div>
 
+    <!-- TOMBOL AKSI -->
     <div class="actions">
         <select class="account-selector" id="account-selector" onchange="resetFilterAndRender()"></select>
         <button class="btn-action btn-edit" onclick="openEditModal()">⚙️</button>
@@ -512,6 +507,7 @@
         <button class="btn-action btn-add" onclick="addNewAccount()">+ Baru</button>
     </div>
 
+    <!-- FORM TRANSAKSI -->
     <div class="transaction-form-card">
         <h3>⚡ Catat Transaksi</h3>
         <div class="form-grid">
@@ -548,23 +544,50 @@
         </div>
     </div>
 
+    <!-- LAPORAN & RIWAYAT -->
     <div class="history-section">
         <div class="history-header">
             <h4>📊 Laporan & Riwayat</h4>
         </div>
 
         <div class="date-filter-container">
-            <div class="date-preset-buttons">
-                <button class="btn-preset" id="btn-preset-month" onclick="setPresetDate('thisMonth')">Bulan Ini</button>
-                <button class="btn-preset" id="btn-preset-year" onclick="setPresetDate('thisYear')">Tahun Ini</button>
-                <button class="btn-preset" id="btn-preset-all" onclick="setPresetDate('allTime')">Semua</button>
-                <button class="btn-preset btn-print" onclick="printMonthlyReport()">🖨️ Cetak PDF</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px;">
+                <select id="history-mode" class="period-select" onchange="toggleHistoryFilterUI()" style="flex: 1; padding: 10px; font-size: 12px; background: rgba(0,0,0,0.4);">
+                    <option value="month">PILIHAN BULAN</option>
+                    <option value="year">PILIHAN TAHUN</option>
+                    <option value="custom">CUSTOM TGL</option> <!-- Diubah di sini -->
+                    <option value="all">SEMUA WAKTU</option>
+                </select>
+                <button class="btn-preset btn-print" onclick="printMonthlyReport()" style="margin: 0; padding: 10px 16px;">🖨 Cetak</button>
             </div>
-            <div class="date-filter-row">
+
+            <div id="panel-month" style="display: flex; gap: 8px;">
+                <select id="hist-month-select" class="period-select" style="flex: 1; background: rgba(0,0,0,0.4);" onchange="applyHistoryFilter()">
+                    <option value="0">JANUARI</option>
+                    <option value="1">FEBRUARI</option>
+                    <option value="2">MARET</option>
+                    <option value="3">APRIL</option>
+                    <option value="4">MEI</option>
+                    <option value="5">JUNI</option>
+                    <option value="6">JULI</option>
+                    <option value="7">AGUSTUS</option>
+                    <option value="8">SEPTEMBER</option>
+                    <option value="9">OKTOBER</option>
+                    <option value="10">NOVEMBER</option>
+                    <option value="11">DESEMBER</option>
+                </select>
+                <select id="hist-year-select" class="period-select" style="flex: 1; background: rgba(0,0,0,0.4);" onchange="applyHistoryFilter()"></select>
+            </div>
+
+            <div id="panel-year" style="display: none; gap: 8px;">
+                <select id="hist-only-year-select" class="period-select" style="width: 100%; background: rgba(0,0,0,0.4);" onchange="applyHistoryFilter()"></select>
+            </div>
+
+            <div id="panel-custom" class="date-filter-row" style="display: none;">
                 <label>Dari</label>
-                <input type="date" id="filter-start-date" class="form-control" onchange="clearPresetStyles(); resetFilterAndRender()">
+                <input type="date" id="filter-start-date" class="form-control" onchange="applyHistoryFilter()">
                 <label style="text-align: right; width:auto; margin-left:4px;">S/d</label>
-                <input type="date" id="filter-end-date" class="form-control" onchange="clearPresetStyles(); resetFilterAndRender()">
+                <input type="date" id="filter-end-date" class="form-control" onchange="applyHistoryFilter()">
             </div>
         </div>
 
@@ -695,6 +718,8 @@
     let activeCategoryFilter = null;
     let isPrintMode = false; 
 
+    const MONTH_NAMES = ["JANUARI", "FEBRUARI", "MARET", "APRIL", "MEI", "JUNI", "JULI", "AGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DESEMBER"];
+
     window.addEventListener('beforeprint', () => { isPrintMode = true; renderApp(); });
     window.addEventListener('afterprint', () => { isPrintMode = false; renderApp(); });
 
@@ -742,7 +767,6 @@
                     accounts = res.data;
                     renderSelector();
                     renderApp();
-                    
                     toggleFormFields('input-type', 'input-category');
                 }
                 document.getElementById('loading-overlay').style.display = 'none';
@@ -790,38 +814,44 @@
 
     const setDefaultDateTime = () => {
         document.getElementById('input-datetime').value = getCurrentDateTimeLocal();
-        setPresetDate('thisMonth');
     };
 
-    function clearPresetStyles() {
-        document.querySelectorAll('.btn-preset:not(.btn-print)').forEach(btn => btn.classList.remove('active'));
+    function toggleHistoryFilterUI() {
+        const mode = document.getElementById('history-mode').value;
+        document.getElementById('panel-month').style.display = (mode === 'month') ? 'flex' : 'none';
+        document.getElementById('panel-year').style.display = (mode === 'year') ? 'flex' : 'none';
+        document.getElementById('panel-custom').style.display = (mode === 'custom') ? 'flex' : 'none';
+        
+        applyHistoryFilter();
     }
 
-    function setPresetDate(preset) {
-        const now = new Date();
+    function applyHistoryFilter() {
+        const mode = document.getElementById('history-mode').value;
         const startInput = document.getElementById('filter-start-date');
         const endInput = document.getElementById('filter-end-date');
 
-        let yyyy = now.getFullYear();
-        let mm = String(now.getMonth() + 1).padStart(2, '0');
-        let dd = String(now.getDate()).padStart(2, '0');
+        if (mode === 'month') {
+            const y = parseInt(document.getElementById('hist-year-select').value);
+            const m = parseInt(document.getElementById('hist-month-select').value);
+            startInput.value = `${y}-${String(m + 1).padStart(2, '0')}-01`;
+            const lastDay = new Date(y, m + 1, 0).getDate();
+            endInput.value = `${y}-${String(m + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+            
+            // Otomatis sinkronisasi ke Slot 2 (Bulan Sebelumnya) di kartu atas
+            let prevM = m - 1;
+            if(prevM < 0) prevM = 11;
+            const prevFilter = document.getElementById('prev-month-filter');
+            if(prevFilter) prevFilter.value = prevM;
 
-        clearPresetStyles();
-
-        if (preset === 'thisMonth') {
-            startInput.value = `${yyyy}-${mm}-01`;
-            const lastDay = new Date(yyyy, now.getMonth() + 1, 0).getDate();
-            endInput.value = `${yyyy}-${mm}-${String(lastDay).padStart(2, '0')}`;
-            document.getElementById('btn-preset-month').classList.add('active');
-        } else if (preset === 'thisYear') {
-            startInput.value = `${yyyy}-01-01`;
-            endInput.value = `${yyyy}-12-31`;
-            document.getElementById('btn-preset-year').classList.add('active');
-        } else if (preset === 'allTime') {
-            startInput.value = '2020-01-01';
+        } else if (mode === 'year') {
+            const y = parseInt(document.getElementById('hist-only-year-select').value);
+            startInput.value = `${y}-01-01`;
+            endInput.value = `${y}-12-31`;
+        } else if (mode === 'all') {
+            startInput.value = '2000-01-01';
             endInput.value = '2099-12-31';
-            document.getElementById('btn-preset-all').classList.add('active');
         }
+        
         resetFilterAndRender();
     }
 
@@ -942,8 +972,8 @@
         const startDate = startDateVal ? new Date(startDateVal + 'T00:00:00') : new Date('2020-01-01');
         const endDate = endDateVal ? new Date(endDateVal + 'T23:59:59') : new Date('2099-12-31');
 
-        let totalIncome = 0; let totalExpense = 0;
-        let filteredHistory = []; let expenseByCategoryData = {};
+        let filteredHistory = []; 
+        let expenseByCategoryData = {};
         
         if (activeAccount.history && activeAccount.history.length > 0) {
             filteredHistory = activeAccount.history.filter(trx => {
@@ -953,9 +983,7 @@
 
             filteredHistory.forEach(trx => {
                 let amt = Number(trx.amt) || 0;
-                if (trx.type === 'in') { totalIncome += amt; } 
-                else if (trx.type === 'out') {
-                    totalExpense += amt;
+                if (trx.type === 'out') {
                     if(trx.category !== 'Transfer Keluar') {
                         const catName = trx.category || "Lainnya";
                         expenseByCategoryData[catName] = (expenseByCategoryData[catName] || 0) + amt;
@@ -964,19 +992,9 @@
             });
         }
         
-        let netFlow = totalIncome - totalExpense;
-
-        document.getElementById('val-income-month').innerText = formatRupiah(totalIncome);
-        document.getElementById('val-expense-month').innerText = formatRupiah(totalExpense);
-
-        const trendEl = document.getElementById('trend-display');
-        if (netFlow > 0) trendEl.innerHTML = `<span style="color: var(--success);">📈 Surplus: +${formatRupiah(netFlow)}</span>`;
-        else if (netFlow < 0) trendEl.innerHTML = `<span style="color: var(--danger);">📉 Minus: -${formatRupiah(Math.abs(netFlow))}</span>`;
-        else trendEl.innerHTML = `<span style="color: var(--text-muted);">➖ Balance</span>`;
-
         document.getElementById('active-acc-name').innerText = escapeHTML(activeAccount.name);
         
-        // Panggil fungsi pembaruan 3 slot saldo
+        // Panggil fungsi perhitungan saldo untuk 3 slot atas
         updateBalanceCard(); 
 
         renderChart(expenseByCategoryData);
@@ -1508,36 +1526,30 @@
         .catch(err => { showToast('Gagal hapus akun!', true); document.getElementById('loading-overlay').style.display = 'none'; });
     }
 
-    // --- FUNGSI UPDATE 3 SLOT SALDO ---
+    // =========================================================
+    // FUNGSI UPDATE SLOT SALDO & RINGKASAN MASUK/KELUAR (SUDAH DIUBAH)
+    // =========================================================
     function updateBalanceCard() {
         const selector = document.getElementById('account-selector');
         const activeAccount = accounts.find(acc => acc.id === selector.value);
         if (!activeAccount) return;
 
         const yearFilterVal = document.getElementById('year-filter').value;
-        const selectedMonth = parseInt(document.getElementById('month-filter').value);
-
         const now = new Date();
         const currentYear = now.getFullYear();
-        const currentMonth = now.getMonth();
-        
         let selectedYear = yearFilterVal === 'all' ? currentYear : parseInt(yearFilterVal);
 
-        // Helper penentu tanggal
-        const getDates = (type) => {
-            if (type === 'current_month') {
-                return { start: new Date(currentYear, currentMonth, 1), end: new Date(currentYear, currentMonth + 1, 0, 23, 59, 59) };
-            } else if (type === 'selected_month') {
-                return { start: new Date(selectedYear, selectedMonth, 1), end: new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59) };
-            } else if (type === 'selected_year') {
-                if (yearFilterVal === 'all') {
-                    return { start: new Date('2000-01-01'), end: new Date('2099-12-31') };
-                }
-                return { start: new Date(selectedYear, 0, 1), end: new Date(selectedYear, 11, 31, 23, 59, 59) };
+        let prevMonth = parseInt(document.getElementById('prev-month-filter').value);
+        let prevYear = selectedYear;
+
+        const getDates = (monthNum, yearNum, type) => {
+            if (type === 'year') {
+                if (yearFilterVal === 'all') return { start: new Date('2000-01-01'), end: new Date('2099-12-31') };
+                return { start: new Date(yearNum, 0, 1), end: new Date(yearNum, 11, 31, 23, 59, 59) };
             }
+            return { start: new Date(yearNum, monthNum, 1), end: new Date(yearNum, monthNum + 1, 0, 23, 59, 59) };
         };
 
-        // Helper penghitung arus kas
         const calcNet = (dates, isAllTime) => {
             let inc = 0; let exp = 0;
             if(activeAccount.history) {
@@ -1549,64 +1561,121 @@
                     }
                 });
             }
-            // Saldo awal HANYA dihitung jika memfilter opsi "Keseluruhan Waktu"
             let base = isAllTime ? (Number(activeAccount.initialBalance) || 0) : 0;
-            return base + inc - exp;
+            return { net: base + inc - exp, income: inc, expense: exp };
         };
 
-        // 1. Hitung Saldo Keseluruhan / Pertahun
-        const yearDates = getDates('selected_year');
-        const yearNet = calcNet(yearDates, yearFilterVal === 'all');
+        // 1. Hitung Saldo Keseluruhan / Pertahun (Slot 1)
+        const yearDates = getDates(null, selectedYear, 'year');
+        const yearData = calcNet(yearDates, yearFilterVal === 'all');
         
-        // 2. Hitung Saldo Data Perbulan (Berdasarkan Tahun yang Dipilih)
-        const monthDates = getDates('selected_month');
-        const monthNet = calcNet(monthDates, false);
+        // 2. Hitung Saldo Bulan Sebelumnya (Slot 2)
+        const prevDates = getDates(prevMonth, prevYear, 'month');
+        const prevData = calcNet(prevDates, false);
 
-        // 3. Hitung Saldo Bulan Sekarang (Fix)
-        const currentMonthDates = getDates('current_month');
-        const currentMonthNet = calcNet(currentMonthDates, false);
+        // 3. Hitung Saldo Dinamis (Slot 3 & Ringkasan) MENGIKUTI FILTER RIWAYAT
+        const startDateVal = document.getElementById('filter-start-date').value;
+        const endDateVal = document.getElementById('filter-end-date').value;
+        const startDate = startDateVal ? new Date(startDateVal + 'T00:00:00') : new Date('2020-01-01');
+        const endDate = endDateVal ? new Date(endDateVal + 'T23:59:59') : new Date('2099-12-31');
+        
+        const historyMode = document.getElementById('history-mode').value;
+        const primaryData = calcNet({start: startDate, end: endDate}, historyMode === 'all');
 
-        // Fungsi render text dan warna
         const renderVal = (elId, val) => {
             const el = document.getElementById(elId);
             el.innerText = formatRupiah(val);
             el.className = 'balance-val ' + (val > 0 ? 'positive' : (val < 0 ? 'negative' : 'neutral'));
         };
 
-        renderVal('year-balance-val', yearNet);
-        renderVal('month-balance-val', monthNet);
-        renderVal('current-month-balance-val', currentMonthNet);
+        // Render Angka ke 3 Slot Saldo Atas
+        renderVal('year-balance-val', yearData.net);
+        renderVal('prev-month-balance-val', prevData.net);
+        renderVal('primary-month-balance-val', primaryData.net);
+
+        // Update Label Text (Dinamis sesuai Filter Riwayat)
+        let periodText = "PERIODE";
+        let shortLabel = "Periode";
+        
+        if (historyMode === 'month') {
+            const m = parseInt(document.getElementById('hist-month-select').value);
+            const y = document.getElementById('hist-year-select').value;
+            periodText = `${MONTH_NAMES[m]} ${y}`;
+            shortLabel = MONTH_NAMES[m];
+        } else if (historyMode === 'year') {
+            const y = document.getElementById('hist-only-year-select').value;
+            periodText = `TAHUN ${y}`;
+            shortLabel = `Th ${y}`;
+        } else if (historyMode === 'custom') {
+            periodText = "CUSTOM TGL";
+            shortLabel = "Custom";
+        } else {
+            periodText = "SEMUA WAKTU";
+            shortLabel = "Semua";
+        }
+
+        document.getElementById('dynamic-period-label').innerText = periodText;
+        document.getElementById('lbl-income').innerText = `Masuk (${shortLabel})`;
+        document.getElementById('lbl-expense').innerText = `Keluar (${shortLabel})`;
+
+        // Update Ringkasan Masuk & Keluar
+        document.getElementById('val-income-month').innerText = formatRupiah(primaryData.income);
+        document.getElementById('val-expense-month').innerText = formatRupiah(primaryData.expense);
+
+        // Update Trend
+        const trendEl = document.getElementById('trend-display');
+        let netFlow = primaryData.income - primaryData.expense;
+        
+        if (netFlow > 0) trendEl.innerHTML = `<span style="color: var(--success);">📈 Surplus ${shortLabel}: +${formatRupiah(netFlow)}</span>`;
+        else if (netFlow < 0) trendEl.innerHTML = `<span style="color: var(--danger);">📉 Minus ${shortLabel}: -${formatRupiah(Math.abs(netFlow))}</span>`;
+        else trendEl.innerHTML = `<span style="color: var(--text-muted);">➖ Balance ${shortLabel}</span>`;
     }
 
     window.onload = () => { 
         setDefaultDateTime(); 
         
-        // --- SET DEFAULT FILTER SAAT APLIKASI DIBUKA ---
         const now = new Date();
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth();
         
-        // 1. Filter Tahun Otomatis Tahun Ini
+        // --- 1. SETUP DEFAULT FILTER SALDO ATAS ---
         const yearFilter = document.getElementById('year-filter');
+        let yearOptions = `<option value="all">KESELURUHAN WAKTU</option>`;
+        let onlyYears = '';
+        for(let y = currentYear + 2; y >= 2020; y--) {
+            const opt = `<option value="${y}">TAHUN ${y}</option>`;
+            yearOptions += opt;
+            onlyYears += opt;
+        }
         if(yearFilter) {
-            let yearOptions = `<option value="all">KESELURUHAN WAKTU</option>`;
-            for(let y = currentYear + 2; y >= 2020; y--) {
-                yearOptions += `<option value="${y}">TAHUN ${y}</option>`;
-            }
             yearFilter.innerHTML = yearOptions;
             yearFilter.value = currentYear;
         }
 
-        // 2. Filter Bulan Otomatis Bulan Kemarin
-        const monthFilter = document.getElementById('month-filter');
-        if(monthFilter) {
-            let lastMonth = currentMonth - 1;
-            if(lastMonth < 0) lastMonth = 11; // Jika Januari, otomatis mundur ke Desember
-            monthFilter.value = lastMonth;
+        // Set Slot 2 (Bulan Mundur) ke Bulan Sebelumnya
+        const prevFilter = document.getElementById('prev-month-filter');
+        if(prevFilter) {
+            let lastM = currentMonth - 1;
+            if(lastM < 0) lastM = 11; 
+            prevFilter.value = lastM;
         }
-        // -----------------------------------------------
+        
+        // --- 2. SETUP DEFAULT FILTER RIWAYAT BAWAH ---
+        const histYearSelect = document.getElementById('hist-year-select');
+        const histOnlyYearSelect = document.getElementById('hist-only-year-select');
+        if(histYearSelect) histYearSelect.innerHTML = onlyYears;
+        if(histOnlyYearSelect) histOnlyYearSelect.innerHTML = onlyYears;
+        
+        if(histYearSelect) histYearSelect.value = currentYear;
+        if(histOnlyYearSelect) histOnlyYearSelect.value = currentYear;
+        
+        const histMonthSelect = document.getElementById('hist-month-select');
+        if(histMonthSelect) histMonthSelect.value = currentMonth;
+        
+        const historyMode = document.getElementById('history-mode');
+        if(historyMode) historyMode.value = 'month';
+        toggleHistoryFilterUI(); 
 
-        // Memuat master kategori secara default sebelum data server berhasil ditangkap
         toggleFormFields('input-type', 'input-category');
         
         loadData(); 

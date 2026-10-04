@@ -119,9 +119,60 @@
         .acc-badge span { font-size: 10px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px;}
         .acc-badge strong { color: var(--gold-light); font-size: 12px; }
 
-        .balance-wrapper { margin-bottom: 24px; text-align: left; }
-        .balance-label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; display: block; }
-        #active-acc-balance { color: white; font-size: 32px; font-weight: 800; letter-spacing: -0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); display: block;}
+        .balance-label { font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0; display: block; }
+        
+        /* --- TAMBAHAN CSS UNTUK 3 KARTU / SLOT SALDO --- */
+        .period-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-glass);
+            color: var(--gold-light);
+            border-radius: var(--radius-sm);
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            outline: none;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .period-select option { background: var(--bg-surface); color: white; }
+
+        .balance-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .balance-slot {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+        .balance-slot:hover {
+            background: rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .balance-slot-right {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-end;
+        }
+        .balance-val { 
+            font-size: 18px; 
+            font-weight: 800; 
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            text-align: left;
+        }
+        .balance-val.positive { color: var(--success); }
+        .balance-val.negative { color: var(--danger); }
+        .balance-val.neutral { color: white; }
+        /* ----------------------------------------------- */
 
         .month-comparison-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
@@ -321,11 +372,6 @@
             .acc-badge { background: #f1f5f9 !important; border: 1px solid #cbd5e1 !important; padding: 4px 10px !important; border-radius: 6px !important; display: inline-flex !important; align-items: center !important; gap: 6px !important; }
             .acc-badge span { color: #64748b !important; font-size: 11px !important; font-weight: 600 !important; display: inline !important; }
             .acc-badge strong { color: #0f172a !important; font-size: 12px !important; font-weight: 700 !important; display: inline !important; }
-            #comp-header-title { color: #64748b !important; font-size: 11px !important; font-weight: 700 !important; display: block !important; }
-            
-            .balance-wrapper { margin-bottom: 14px !important; text-align: left !important; }
-            .balance-label { display: block !important; color: #64748b !important; font-size: 11px !important; font-weight: 600 !important; margin-bottom: 4px !important; }
-            #active-acc-balance { color: #0f172a !important; text-shadow: none !important; font-size: 26px !important; font-weight: 800 !important; display: block !important; }
             
             .month-comparison-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 16px !important; border-top: 1px solid #e2e8f0 !important; padding-top: 12px !important; }
             .mc-label { color: #64748b !important; font-size: 11px !important; font-weight: 600 !important; display: block !important; }
@@ -399,13 +445,52 @@
                 <span>💳 AKUN:</span>
                 <strong id="active-acc-name">-</strong>
             </div>
-            <span style="font-size: 10px; color: var(--text-subtle); font-weight: 700; text-transform: uppercase;" id="comp-header-title">Periode Berjalan</span>
         </div>
         
-        <div class="balance-wrapper">
-            <span class="balance-label">Total Saldo Tersedia</span>
-            <strong id="active-acc-balance">Rp 0</strong>
+        <!-- ============================================== -->
+        <!-- 3 SLOT SALDO SESUAI PERMINTAAN                 -->
+        <!-- ============================================== -->
+        <div class="balance-stack">
+            <!-- SLOT 1: Keseluruhan Pertahun (Pilihan Tahun) -->
+            <div class="balance-slot">
+                <strong id="year-balance-val" class="balance-val neutral">Rp 0</strong>
+                <div class="balance-slot-right">
+                    <select id="year-filter" class="period-select" onchange="updateBalanceCard()">
+                        <!-- Opsi tahun akan di-generate otomatis via JavaScript -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- SLOT 2: Data Perbulan (Pilihan Bulan) -->
+            <div class="balance-slot">
+                <strong id="month-balance-val" class="balance-val neutral">Rp 0</strong>
+                <div class="balance-slot-right">
+                    <select id="month-filter" class="period-select" onchange="updateBalanceCard()">
+                        <option value="0">JANUARI</option>
+                        <option value="1">FEBRUARI</option>
+                        <option value="2">MARET</option>
+                        <option value="3">APRIL</option>
+                        <option value="4">MEI</option>
+                        <option value="5">JUNI</option>
+                        <option value="6">JULI</option>
+                        <option value="7">AGUSTUS</option>
+                        <option value="8">SEPTEMBER</option>
+                        <option value="9">OKTOBER</option>
+                        <option value="10">NOVEMBER</option>
+                        <option value="11">DESEMBER</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- SLOT 3: Saldo Bulan Sekarang (Otomatis) -->
+            <div class="balance-slot">
+                <strong id="current-month-balance-val" class="balance-val neutral">Rp 0</strong>
+                <div class="balance-slot-right">
+                    <span class="balance-label" style="color:var(--gold-light);">SALDO BULAN INI</span>
+                </div>
+            </div>
         </div>
+        <!-- ============================================== -->
 
         <div class="month-comparison-grid">
             <div class="mc-item">
@@ -452,7 +537,6 @@
 
             <div class="form-group full-width" id="group-category">
                 <label class="form-label">Kategori</label>
-                <!-- PENAMBAHAN ID AGAR BISA DIDETEKSI TIPE TRANSAKSINYA -->
                 <select class="form-control" id="input-category" onchange="checkCustomOption(this, 'input-type')"></select>
             </div>
             
@@ -585,7 +669,6 @@
             </div>
             <div class="form-group full-width">
                 <label class="form-label">Kategori</label>
-                <!-- PENAMBAHAN ID AGAR BISA DIDETEKSI TIPE TRANSAKSINYA -->
                 <select class="form-control" id="edit-trx-category" onchange="checkCustomOption(this, 'edit-trx-type')"></select>
             </div>
             <div class="form-group full-width">
@@ -660,7 +743,6 @@
                     renderSelector();
                     renderApp();
                     
-                    // Refresh pilihan kategori master agar kategori dari server (histori) langsung dimuat
                     toggleFormFields('input-type', 'input-category');
                 }
                 document.getElementById('loading-overlay').style.display = 'none';
@@ -752,31 +834,22 @@
         }, 300);
     }
 
-    // ==========================================
-    // LOGIKA PENYIMPANAN KATEGORI MASTER OTOMATIS
-    // ==========================================
-
-    // Mengambil semua kategori (Default + LocalStorage + Histori Transaksi)
     function getCategories(type) {
-        // 1. Kategori Default Bawaan (Icon emoji dihapus agar tidak dobel dengan data yang diketik manual)
         let defaults = type === 'in'
             ? ["Gaji / Upah", "Hasil Usaha", "Bonus / Lainnya"]
             : ["Makan & Minum", "Belanja", "Kebutuhan Rumah", "Transportasi", "Lainnya"];
 
         let masterSet = new Set(defaults);
 
-        // 2. Ambil dari penyimpanan perangkat (Bila pernah buat manual)
         try {
             let localCats = JSON.parse(localStorage.getItem('customCats_' + type)) || [];
             localCats.forEach(cat => masterSet.add(cat));
         } catch(e) {}
 
-        // 3. Ambil dari Histori Transaksi (Otomatis dari Server)
         if (accounts && accounts.length > 0) {
             accounts.forEach(acc => {
                 if(acc.history) {
                     acc.history.forEach(trx => {
-                        // Memastikan Tipe sama, tidak kosong, dan bukan Transfer Internal
                         if (trx.type === type && trx.category && trx.category !== 'Transfer Keluar' && trx.category !== 'Transfer Masuk') {
                             masterSet.add(trx.category);
                         }
@@ -795,7 +868,6 @@
                 const cleanValue = escapeHTML(newValue.trim());
                 const type = document.getElementById(typeId).value;
 
-                // 1. Simpan kategori baru ini ke dalam memori perangkat agar abadi
                 let localCats = [];
                 try { localCats = JSON.parse(localStorage.getItem('customCats_' + type)) || []; } catch(e){}
                 
@@ -804,10 +876,7 @@
                     localStorage.setItem('customCats_' + type, JSON.stringify(localCats));
                 }
 
-                // 2. Refresh dropdown agar langsung muncul dan siap digunakan
                 populateSelectOptions(selectElement.id, type);
-                
-                // 3. Set pilihan ke kategori yang baru saja dibuat
                 selectElement.value = cleanValue;
             } else {
                 selectElement.selectedIndex = 0;
@@ -906,7 +975,9 @@
         else trendEl.innerHTML = `<span style="color: var(--text-muted);">➖ Balance</span>`;
 
         document.getElementById('active-acc-name').innerText = escapeHTML(activeAccount.name);
-        document.getElementById('active-acc-balance').innerText = formatRupiah(activeAccount.balance);
+        
+        // Panggil fungsi pembaruan 3 slot saldo
+        updateBalanceCard(); 
 
         renderChart(expenseByCategoryData);
 
@@ -1151,8 +1222,7 @@
                             }
                         }, beginAtZero: true
                     }
-                },
-                onClick: (event, elements) => { if (elements && elements.length > 0 && !isPrintMode) toggleCategoryFilter(labels[elements[0].index]); }
+                }
             }
         });
 
@@ -1438,9 +1508,104 @@
         .catch(err => { showToast('Gagal hapus akun!', true); document.getElementById('loading-overlay').style.display = 'none'; });
     }
 
+    // --- FUNGSI UPDATE 3 SLOT SALDO ---
+    function updateBalanceCard() {
+        const selector = document.getElementById('account-selector');
+        const activeAccount = accounts.find(acc => acc.id === selector.value);
+        if (!activeAccount) return;
+
+        const yearFilterVal = document.getElementById('year-filter').value;
+        const selectedMonth = parseInt(document.getElementById('month-filter').value);
+
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        
+        let selectedYear = yearFilterVal === 'all' ? currentYear : parseInt(yearFilterVal);
+
+        // Helper penentu tanggal
+        const getDates = (type) => {
+            if (type === 'current_month') {
+                return { start: new Date(currentYear, currentMonth, 1), end: new Date(currentYear, currentMonth + 1, 0, 23, 59, 59) };
+            } else if (type === 'selected_month') {
+                return { start: new Date(selectedYear, selectedMonth, 1), end: new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59) };
+            } else if (type === 'selected_year') {
+                if (yearFilterVal === 'all') {
+                    return { start: new Date('2000-01-01'), end: new Date('2099-12-31') };
+                }
+                return { start: new Date(selectedYear, 0, 1), end: new Date(selectedYear, 11, 31, 23, 59, 59) };
+            }
+        };
+
+        // Helper penghitung arus kas
+        const calcNet = (dates, isAllTime) => {
+            let inc = 0; let exp = 0;
+            if(activeAccount.history) {
+                activeAccount.history.forEach(trx => {
+                    let tDate = new Date(trx.datetime);
+                    if(tDate >= dates.start && tDate <= dates.end) {
+                        if(trx.type === 'in') inc += Number(trx.amt);
+                        if(trx.type === 'out') exp += Number(trx.amt);
+                    }
+                });
+            }
+            // Saldo awal HANYA dihitung jika memfilter opsi "Keseluruhan Waktu"
+            let base = isAllTime ? (Number(activeAccount.initialBalance) || 0) : 0;
+            return base + inc - exp;
+        };
+
+        // 1. Hitung Saldo Keseluruhan / Pertahun
+        const yearDates = getDates('selected_year');
+        const yearNet = calcNet(yearDates, yearFilterVal === 'all');
+        
+        // 2. Hitung Saldo Data Perbulan (Berdasarkan Tahun yang Dipilih)
+        const monthDates = getDates('selected_month');
+        const monthNet = calcNet(monthDates, false);
+
+        // 3. Hitung Saldo Bulan Sekarang (Fix)
+        const currentMonthDates = getDates('current_month');
+        const currentMonthNet = calcNet(currentMonthDates, false);
+
+        // Fungsi render text dan warna
+        const renderVal = (elId, val) => {
+            const el = document.getElementById(elId);
+            el.innerText = formatRupiah(val);
+            el.className = 'balance-val ' + (val > 0 ? 'positive' : (val < 0 ? 'negative' : 'neutral'));
+        };
+
+        renderVal('year-balance-val', yearNet);
+        renderVal('month-balance-val', monthNet);
+        renderVal('current-month-balance-val', currentMonthNet);
+    }
+
     window.onload = () => { 
         setDefaultDateTime(); 
         
+        // --- SET DEFAULT FILTER SAAT APLIKASI DIBUKA ---
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        
+        // 1. Filter Tahun Otomatis Tahun Ini
+        const yearFilter = document.getElementById('year-filter');
+        if(yearFilter) {
+            let yearOptions = `<option value="all">KESELURUHAN WAKTU</option>`;
+            for(let y = currentYear + 2; y >= 2020; y--) {
+                yearOptions += `<option value="${y}">TAHUN ${y}</option>`;
+            }
+            yearFilter.innerHTML = yearOptions;
+            yearFilter.value = currentYear;
+        }
+
+        // 2. Filter Bulan Otomatis Bulan Kemarin
+        const monthFilter = document.getElementById('month-filter');
+        if(monthFilter) {
+            let lastMonth = currentMonth - 1;
+            if(lastMonth < 0) lastMonth = 11; // Jika Januari, otomatis mundur ke Desember
+            monthFilter.value = lastMonth;
+        }
+        // -----------------------------------------------
+
         // Memuat master kategori secara default sebelum data server berhasil ditangkap
         toggleFormFields('input-type', 'input-category');
         
